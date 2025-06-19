@@ -1,0 +1,38 @@
+name: Export Fiches to CSV/XLSX
+
+on:
+  push:
+    branches:
+      - main # Of 'master', afhankelijk van de naam van je hoofdbranch
+    paths:
+      - 'fiches/*.yaml' # Activeer wanneer een YAML-bestand in de 'fiches' map wijzigt
+      - 'fiches/*.yml'
+      - 'parse_and_export.py' # Activeer ook als het script zelf wijzigt
+      - 'requirements.txt'
+
+jobs:
+  export:
+    runs-on: ubuntu-latest # Draai de workflow op een Ubuntu-server
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # Haalt de code van je repository op
+
+      - name: Set up Python
+        uses: actions/setup-python@v5 # Stelt Python in op de runner
+        with:
+          python-version: '3.9' # Gebruik Python 3.9 (of een andere recente versie)
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt # Installeer de benodigde Python-bibliotheken
+
+      - name: Run export script
+        run: python parse_and_export.py # Voer je Python export script uit
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add output_fiches.csv output_fiches.xlsx
+          git commit -m "Automated: Update exported fiches (CSV/XLSX)" || echo "No changes to commit"
+          git push
